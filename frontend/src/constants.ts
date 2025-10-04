@@ -1,26 +1,27 @@
 export const CATEGORIES = [
-  { id: 'electronics', name: 'Electronics', emoji: '📱' },
-  { id: 'clothing', name: 'Clothing', emoji: '👕' },
-  { id: 'furniture', name: 'Furniture', emoji: '🛋️' },
-  { id: 'books', name: 'Books', emoji: '📚' },
-  { id: 'toys', name: 'Toys', emoji: '🧸' },
-  { id: 'sports', name: 'Sports', emoji: '⚽' },
-  { id: 'tools', name: 'Tools', emoji: '🔧' },
-  { id: 'home', name: 'Home & Garden', emoji: '🏡' },
-  { id: 'automotive', name: 'Automotive', emoji: '🚗' },
-  { id: 'other', name: 'Other', emoji: '📦' },
+  { id: "electronics", name: "Electronics", emoji: "📱" },
+  { id: "clothing", name: "Clothing", emoji: "👕" },
+  { id: "furniture", name: "Furniture", emoji: "🛋️" },
+  { id: "books", name: "Books", emoji: "📚" },
+  { id: "toys", name: "Toys", emoji: "🧸" },
+  { id: "sports", name: "Sports", emoji: "⚽" },
+  { id: "tools", name: "Tools", emoji: "🔧" },
+  { id: "home", name: "Home & Garden", emoji: "🏡" },
+  { id: "automotive", name: "Automotive", emoji: "🚗" },
+  { id: "other", name: "Other", emoji: "📦" },
 ] as const;
 
-export type CategoryId = typeof CATEGORIES[number]['id'];
+export type CategoryId = (typeof CATEGORIES)[number]["id"];
 
 // Listing status enum
 export const LISTING_STATUS = {
-  ACTIVE: 'active',
-  EXPIRED: 'expired',
-  ARCHIVED: 'archived',
+  ACTIVE: "active",
+  EXPIRED: "expired",
+  ARCHIVED: "archived",
 } as const;
 
-export type ListingStatus = typeof LISTING_STATUS[keyof typeof LISTING_STATUS];
+export type ListingStatus =
+  (typeof LISTING_STATUS)[keyof typeof LISTING_STATUS];
 
 // Price constraints (in cents)
 export const PRICE_MIN = 0;
@@ -41,13 +42,13 @@ export function formatPrice(priceInCents: number): string {
 }
 
 export function parsePriceInput(priceString: string): number {
-  const cleaned = priceString.replace(/[^0-9.]/g, '');
+  const cleaned = priceString.replace(/[^0-9.]/g, "");
   const dollars = parseFloat(cleaned) || 0;
   return Math.round(dollars * 100);
 }
 
 export function getCategoryById(id: string) {
-  return CATEGORIES.find(cat => cat.id === id);
+  return CATEGORIES.find((cat) => cat.id === id);
 }
 
 export function formatTimeRemaining(expiresAt: number): string {
@@ -55,7 +56,7 @@ export function formatTimeRemaining(expiresAt: number): string {
   const diff = expiresAt - now;
 
   if (diff <= 0) {
-    return 'Expired';
+    return "Expired";
   }
 
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
@@ -76,7 +77,7 @@ export function getTimeRemainingColor(expiresAt: number): string {
   const diff = expiresAt - now;
   const hours = diff / (1000 * 60 * 60);
 
-  if (hours > 24) return 'text-green-600';
-  if (hours > 1) return 'text-yellow-600';
-  return 'text-red-600';
+  if (hours > 24) return "text-green-600";
+  if (hours > 1) return "text-yellow-600";
+  return "text-red-600";
 }

@@ -1,10 +1,14 @@
-import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { listingsApi, type Listing } from '../services/listingsApi';
-import { useAuth } from '../contexts/AuthContext';
-import { ListingTimer } from '../components/ListingTimer';
-import { formatPrice, getCategoryById, BUMP_COOLDOWN_HOURS } from '../constants';
-import { config } from '../config';
+import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { listingsApi, type Listing } from "../services/listingsApi";
+import { useAuth } from "../contexts/AuthContext";
+import { ListingTimer } from "../components/ListingTimer";
+import {
+  formatPrice,
+  getCategoryById,
+  BUMP_COOLDOWN_HOURS,
+} from "../constants";
+import { config } from "../config";
 
 export default function ListingDetail() {
   const { id } = useParams<{ id: string }>();
@@ -13,7 +17,7 @@ export default function ListingDetail() {
   const [listing, setListing] = useState<Listing | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [archiveReason, setArchiveReason] = useState('');
+  const [archiveReason, setArchiveReason] = useState("");
   const [showArchiveModal, setShowArchiveModal] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
@@ -27,7 +31,7 @@ export default function ListingDetail() {
       const { listing: data } = await listingsApi.getListingById(Number(id));
       setListing(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load listing');
+      setError(err instanceof Error ? err.message : "Failed to load listing");
     } finally {
       setLoading(false);
     }
@@ -36,13 +40,13 @@ export default function ListingDetail() {
   const handleDelete = async () => {
     if (!sessionId || !listing) return;
 
-    if (!confirm('Are you sure you want to delete this listing?')) return;
+    if (!confirm("Are you sure you want to delete this listing?")) return;
 
     try {
       await listingsApi.deleteListing(listing.id, sessionId);
-      navigate('/');
+      navigate("/");
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to delete listing');
+      alert(err instanceof Error ? err.message : "Failed to delete listing");
     }
   };
 
@@ -50,13 +54,17 @@ export default function ListingDetail() {
     if (!sessionId || !listing) return;
 
     try {
-      const result = await listingsApi.bumpListing(listing.id, false, sessionId);
-      if ('listing' in result) {
+      const result = await listingsApi.bumpListing(
+        listing.id,
+        false,
+        sessionId,
+      );
+      if ("listing" in result) {
         setListing(result.listing);
-        alert('Listing bumped successfully! Extended for 3 more days.');
+        alert("Listing bumped successfully! Extended for 3 more days.");
       }
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to bump listing');
+      alert(err instanceof Error ? err.message : "Failed to bump listing");
     }
   };
 
@@ -65,11 +73,13 @@ export default function ListingDetail() {
 
     try {
       const result = await listingsApi.bumpListing(listing.id, true, sessionId);
-      if ('message' in result) {
+      if ("message" in result) {
         alert(result.message);
       }
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to create bump payment');
+      alert(
+        err instanceof Error ? err.message : "Failed to create bump payment",
+      );
     }
   };
 
@@ -79,24 +89,26 @@ export default function ListingDetail() {
     try {
       await listingsApi.archiveListing(listing.id, archiveReason, sessionId);
       setShowArchiveModal(false);
-      alert('Listing archived successfully');
-      navigate('/');
+      alert("Listing archived successfully");
+      navigate("/");
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to archive listing');
+      alert(err instanceof Error ? err.message : "Failed to archive listing");
     }
   };
 
   const canBump = () => {
     if (!listing || !listing.lastBumpedAt) return true;
 
-    const hoursSinceLastBump = (Date.now() - listing.lastBumpedAt) / (1000 * 60 * 60);
+    const hoursSinceLastBump =
+      (Date.now() - listing.lastBumpedAt) / (1000 * 60 * 60);
     return hoursSinceLastBump >= BUMP_COOLDOWN_HOURS;
   };
 
   const getTimeUntilNextBump = () => {
     if (!listing?.lastBumpedAt) return 0;
 
-    const hoursSinceLastBump = (Date.now() - listing.lastBumpedAt) / (1000 * 60 * 60);
+    const hoursSinceLastBump =
+      (Date.now() - listing.lastBumpedAt) / (1000 * 60 * 60);
     return Math.max(0, Math.ceil(BUMP_COOLDOWN_HOURS - hoursSinceLastBump));
   };
 
@@ -119,9 +131,9 @@ export default function ListingDetail() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Error</h2>
-          <p className="text-gray-600 mb-4">{error || 'Listing not found'}</p>
+          <p className="text-gray-600 mb-4">{error || "Listing not found"}</p>
           <button
-            onClick={() => navigate('/')}
+            onClick={() => navigate("/")}
             className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
           >
             Back to Feed
@@ -146,13 +158,21 @@ export default function ListingDetail() {
           {images.length > 1 && (
             <>
               <button
-                onClick={() => setCurrentImageIndex((prev) => (prev > 0 ? prev - 1 : images.length - 1))}
+                onClick={() =>
+                  setCurrentImageIndex((prev) =>
+                    prev > 0 ? prev - 1 : images.length - 1,
+                  )
+                }
                 className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full"
               >
                 ←
               </button>
               <button
-                onClick={() => setCurrentImageIndex((prev) => (prev < images.length - 1 ? prev + 1 : 0))}
+                onClick={() =>
+                  setCurrentImageIndex((prev) =>
+                    prev < images.length - 1 ? prev + 1 : 0,
+                  )
+                }
                 className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full"
               >
                 →
@@ -161,7 +181,7 @@ export default function ListingDetail() {
                 {images.map((_, idx) => (
                   <div
                     key={idx}
-                    className={`w-2 h-2 rounded-full ${idx === currentImageIndex ? 'bg-white' : 'bg-white/50'}`}
+                    className={`w-2 h-2 rounded-full ${idx === currentImageIndex ? "bg-white" : "bg-white/50"}`}
                   />
                 ))}
               </div>
@@ -176,7 +196,9 @@ export default function ListingDetail() {
         <div>
           <div className="flex items-start justify-between mb-2">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">{listing.title}</h1>
+              <h1 className="text-2xl font-bold text-gray-900">
+                {listing.title}
+              </h1>
               {category && (
                 <span className="inline-block mt-1 px-2 py-1 bg-gray-100 rounded text-sm">
                   {category.emoji} {category.name}
@@ -184,8 +206,13 @@ export default function ListingDetail() {
               )}
             </div>
             <div className="text-right">
-              <div className="text-3xl font-bold text-blue-600">{formatPrice(listing.price)}</div>
-              <ListingTimer expiresAt={listing.expiresAt} className="text-sm justify-end" />
+              <div className="text-3xl font-bold text-blue-600">
+                {formatPrice(listing.price)}
+              </div>
+              <ListingTimer
+                expiresAt={listing.expiresAt}
+                className="text-sm justify-end"
+              />
             </div>
           </div>
         </div>
@@ -193,7 +220,9 @@ export default function ListingDetail() {
         {/* Description */}
         <div className="bg-white rounded-lg p-4 shadow-sm">
           <h2 className="font-semibold text-gray-900 mb-2">Description</h2>
-          <p className="text-gray-700 whitespace-pre-wrap">{listing.description}</p>
+          <p className="text-gray-700 whitespace-pre-wrap">
+            {listing.description}
+          </p>
         </div>
 
         {/* Seller Info */}
@@ -210,7 +239,9 @@ export default function ListingDetail() {
             <div>
               <p className="font-medium text-gray-900">{listing.displayName}</p>
               {listing.profile?.username && (
-                <p className="text-sm text-gray-600">@{listing.profile.username}</p>
+                <p className="text-sm text-gray-600">
+                  @{listing.profile.username}
+                </p>
               )}
             </div>
           </div>
@@ -304,7 +335,8 @@ export default function ListingDetail() {
           <div className="bg-white rounded-lg p-6 max-w-md w-full">
             <h3 className="text-xl font-bold mb-4">Archive Listing</h3>
             <p className="text-gray-600 mb-4">
-              Please provide a reason for archiving this listing. The seller will be notified.
+              Please provide a reason for archiving this listing. The seller
+              will be notified.
             </p>
             <textarea
               value={archiveReason}

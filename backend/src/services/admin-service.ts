@@ -10,7 +10,10 @@ export class AdminService {
     private env: Env,
   ) {}
 
-  async archiveListing(listingId: number, reason: string): Promise<{
+  async archiveListing(
+    listingId: number,
+    reason: string,
+  ): Promise<{
     success: boolean;
     listing?: any;
     error?: string;
@@ -82,7 +85,7 @@ export class AdminService {
         },
       );
 
-      const data = await response.json() as { ok: boolean };
+      const data = (await response.json()) as { ok: boolean };
 
       if (!data.ok) {
         console.error("Failed to send Telegram notification:", data);

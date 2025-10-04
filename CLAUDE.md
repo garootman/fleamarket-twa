@@ -156,6 +156,7 @@ See `.github/workflows/` for CI/CD pipeline:
 ### Marketplace API Endpoints
 
 **Listings**:
+
 - `GET /api/listings` - Browse listings with filters (category, price range, search), sorting, pagination
 - `GET /api/listings/:listingId` - Get single listing with images and seller profile
 - `GET /api/listings/user/:userId` - Get user's listings
@@ -166,9 +167,11 @@ See `.github/workflows/` for CI/CD pipeline:
 - `POST /api/listings/:listingId/images` - Upload images (owner only)
 
 **Admin**:
+
 - `POST /api/admin/listings/:listingId/archive` - Archive listing with reason (admin only, sends Telegram notification)
 
 **Services** (`backend/src/services/`):
+
 - `listing-service.ts` - CRUD, filters, search, sorting, expiry management
 - `bump-service.ts` - Bump validation (cooldown check), free/paid bump execution
 - `admin-service.ts` - Archive listings with Telegram notifications
@@ -215,6 +218,7 @@ See `.github/workflows/` for CI/CD pipeline:
 ### Frontend Components
 
 **Marketplace-Specific**:
+
 - `ListingTimer.tsx` - Real-time countdown timer with color coding (green >24h, yellow >1h, red <1h)
 - `ListingDetail.tsx` - Full listing page with:
   - Image carousel with prev/next navigation

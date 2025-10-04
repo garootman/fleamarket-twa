@@ -67,8 +67,8 @@ export interface ListingFilters {
   priceMin?: number;
   priceMax?: number;
   search?: string;
-  sortBy?: 'price' | 'date';
-  sortOrder?: 'asc' | 'desc';
+  sortBy?: "price" | "date";
+  sortOrder?: "asc" | "desc";
   status?: ListingStatus[];
 }
 
@@ -104,14 +104,16 @@ export const listingsApi = {
       offset: offset.toString(),
     });
 
-    if (filters.category) params.append('category', filters.category);
-    if (filters.priceMin !== undefined) params.append('priceMin', filters.priceMin.toString());
-    if (filters.priceMax !== undefined) params.append('priceMax', filters.priceMax.toString());
-    if (filters.search) params.append('search', filters.search);
-    if (filters.sortBy) params.append('sortBy', filters.sortBy);
-    if (filters.sortOrder) params.append('sortOrder', filters.sortOrder);
+    if (filters.category) params.append("category", filters.category);
+    if (filters.priceMin !== undefined)
+      params.append("priceMin", filters.priceMin.toString());
+    if (filters.priceMax !== undefined)
+      params.append("priceMax", filters.priceMax.toString());
+    if (filters.search) params.append("search", filters.search);
+    if (filters.sortBy) params.append("sortBy", filters.sortBy);
+    if (filters.sortOrder) params.append("sortOrder", filters.sortOrder);
     if (filters.status && filters.status.length > 0) {
-      params.append('status', filters.status.join(','));
+      params.append("status", filters.status.join(","));
     }
 
     const response = await fetch(
@@ -147,7 +149,7 @@ export const listingsApi = {
     });
 
     if (filters.status && filters.status.length > 0) {
-      params.append('status', filters.status.join(','));
+      params.append("status", filters.status.join(","));
     }
 
     const response = await fetch(

@@ -231,16 +231,29 @@ export const createListing = async (c: Context<{ Bindings: Env }>) => {
     const body = await c.req.json();
 
     // Validate input
-    if (!body.title || typeof body.title !== "string" || body.title.trim() === "") {
+    if (
+      !body.title ||
+      typeof body.title !== "string" ||
+      body.title.trim() === ""
+    ) {
       return c.json({ error: "Title is required" }, 400);
     }
     if (!body.description || typeof body.description !== "string") {
       return c.json({ error: "Description is required" }, 400);
     }
-    if (typeof body.price !== "number" || body.price < PRICE_MIN || body.price > PRICE_MAX) {
-      return c.json({ error: `Price must be between $${PRICE_MIN / 100} and $${PRICE_MAX / 100}` }, 400);
+    if (
+      typeof body.price !== "number" ||
+      body.price < PRICE_MIN ||
+      body.price > PRICE_MAX
+    ) {
+      return c.json(
+        {
+          error: `Price must be between $${PRICE_MIN / 100} and $${PRICE_MAX / 100}`,
+        },
+        400,
+      );
     }
-    if (!body.category || !CATEGORIES.find(cat => cat.id === body.category)) {
+    if (!body.category || !CATEGORIES.find((cat) => cat.id === body.category)) {
       return c.json({ error: "Valid category is required" }, 400);
     }
 
@@ -287,13 +300,29 @@ export const updateListing = async (c: Context<{ Bindings: Env }>) => {
     const body = await c.req.json();
 
     // Validate optional fields
-    if (body.title !== undefined && (typeof body.title !== "string" || body.title.trim() === "")) {
+    if (
+      body.title !== undefined &&
+      (typeof body.title !== "string" || body.title.trim() === "")
+    ) {
       return c.json({ error: "Title must be a non-empty string" }, 400);
     }
-    if (body.price !== undefined && (typeof body.price !== "number" || body.price < PRICE_MIN || body.price > PRICE_MAX)) {
-      return c.json({ error: `Price must be between $${PRICE_MIN / 100} and $${PRICE_MAX / 100}` }, 400);
+    if (
+      body.price !== undefined &&
+      (typeof body.price !== "number" ||
+        body.price < PRICE_MIN ||
+        body.price > PRICE_MAX)
+    ) {
+      return c.json(
+        {
+          error: `Price must be between $${PRICE_MIN / 100} and $${PRICE_MAX / 100}`,
+        },
+        400,
+      );
     }
-    if (body.category !== undefined && !CATEGORIES.find(cat => cat.id === body.category)) {
+    if (
+      body.category !== undefined &&
+      !CATEGORIES.find((cat) => cat.id === body.category)
+    ) {
       return c.json({ error: "Invalid category" }, 400);
     }
 
@@ -452,13 +481,17 @@ export const bumpListing = async (c: Context<{ Bindings: Env }>) => {
       // Paid bump flow will be handled via Telegram payment webhook
       // Return payment URL/invoice here
       return c.json({
-        message: "Paid bump requires payment - to be implemented with Telegram Stars",
+        message:
+          "Paid bump requires payment - to be implemented with Telegram Stars",
       });
     }
   } catch (error) {
     console.error("Error bumping listing:", error);
     return c.json(
-      { error: error instanceof Error ? error.message : "Failed to bump listing" },
+      {
+        error:
+          error instanceof Error ? error.message : "Failed to bump listing",
+      },
       500,
     );
   }
@@ -501,7 +534,10 @@ export const archiveListing = async (c: Context<{ Bindings: Env }>) => {
     );
 
     if (!result.success) {
-      return c.json({ error: result.error || "Failed to archive listing" }, 500);
+      return c.json(
+        { error: result.error || "Failed to archive listing" },
+        500,
+      );
     }
 
     return c.json({

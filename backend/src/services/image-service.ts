@@ -145,12 +145,20 @@ export class ImageService {
     }));
   }
 
-  async deleteListingImage(imageId: number, listingId: number): Promise<boolean> {
+  async deleteListingImage(
+    imageId: number,
+    listingId: number,
+  ): Promise<boolean> {
     // Get image metadata
     const [image] = await this.db
       .select()
       .from(listingImages)
-      .where(and(eq(listingImages.id, imageId), eq(listingImages.listingId, listingId)))
+      .where(
+        and(
+          eq(listingImages.id, imageId),
+          eq(listingImages.listingId, listingId),
+        ),
+      )
       .limit(1);
 
     if (!image) {
@@ -169,7 +177,12 @@ export class ImageService {
     // Delete from database
     const [deletedImage] = await this.db
       .delete(listingImages)
-      .where(and(eq(listingImages.id, imageId), eq(listingImages.listingId, listingId)))
+      .where(
+        and(
+          eq(listingImages.id, imageId),
+          eq(listingImages.listingId, listingId),
+        ),
+      )
       .returning();
 
     return !!deletedImage;
@@ -193,7 +206,9 @@ export class ImageService {
     }
 
     // Delete from database
-    await this.db.delete(listingImages).where(eq(listingImages.listingId, listingId));
+    await this.db
+      .delete(listingImages)
+      .where(eq(listingImages.listingId, listingId));
   }
 
   async validateImageFile(

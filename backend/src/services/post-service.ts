@@ -29,11 +29,11 @@ export class PostService {
         userId,
         username,
         displayName,
-        title: 'Post', // Legacy posts have generic title
-        description: input.content,
+        title: "Post", // Legacy posts have generic title
+        content: input.content,
         price: 0,
-        category: 'other',
-        status: 'active',
+        category: "other",
+        status: "active",
         expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000, // 30 days
         createdAt: now,
         updatedAt: now,
@@ -93,7 +93,7 @@ export class PostService {
     const [updatedPost] = await this.db
       .update(posts)
       .set({
-        description: content,
+        content: content,
         updatedAt: now,
       })
       .where(and(eq(posts.id, id), eq(posts.userId, userId)))
@@ -142,7 +142,7 @@ export class PostService {
         userId: posts.userId,
         username: posts.username,
         displayName: posts.displayName,
-        content: posts.description,
+        content: posts.content,
         starCount: posts.starCount,
         paymentId: posts.paymentId,
         isPaymentPending: posts.isPaymentPending,

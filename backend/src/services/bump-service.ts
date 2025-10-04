@@ -21,7 +21,10 @@ export class BumpService {
     private env: Env,
   ) {}
 
-  async canBumpListing(listingId: number, userId: number): Promise<{
+  async canBumpListing(
+    listingId: number,
+    userId: number,
+  ): Promise<{
     canBump: boolean;
     reason?: string;
     hoursUntilNextBump?: number;
@@ -96,9 +99,7 @@ export class BumpService {
     return bumpedListing;
   }
 
-  async getTimeUntilNextBump(
-    listingId: number,
-  ): Promise<number | null> {
+  async getTimeUntilNextBump(listingId: number): Promise<number | null> {
     const [listing] = await this.db
       .select({ lastBumpedAt: listings.lastBumpedAt })
       .from(listings)

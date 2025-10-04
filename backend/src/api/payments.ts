@@ -115,7 +115,7 @@ export const makePremium = async (c: Context<{ Bindings: Env }>) => {
       userId: session.telegramId,
       listingId: postId,
       starAmount: starCount,
-      paymentType: 'premium_listing',
+      paymentType: "premium_listing",
     });
 
     return c.json({

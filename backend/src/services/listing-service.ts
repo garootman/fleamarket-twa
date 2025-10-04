@@ -1,4 +1,4 @@
-import { eq, desc, and, or, gte, lte, sql, like } from "drizzle-orm";
+import { eq, desc, and, or, gte, lte, like } from "drizzle-orm";
 import type { Database } from "../db";
 import { listings, listingImages, userProfiles } from "../db/schema";
 import type { ImageUrlData } from "./image-service";
@@ -122,7 +122,9 @@ export class ListingService {
         input.sortOrder === "asc" ? listings.price : desc(listings.price);
     } else {
       orderBy =
-        input.sortOrder === "asc" ? listings.createdAt : desc(listings.createdAt);
+        input.sortOrder === "asc"
+          ? listings.createdAt
+          : desc(listings.createdAt);
     }
 
     // Execute query
@@ -155,8 +157,7 @@ export class ListingService {
     };
 
     if (input.title !== undefined) updateData.title = input.title;
-    if (input.description !== undefined)
-      updateData.content = input.description;
+    if (input.description !== undefined) updateData.content = input.description;
     if (input.price !== undefined) updateData.price = input.price;
     if (input.category !== undefined) updateData.category = input.category;
 
@@ -268,7 +269,11 @@ export class ListingService {
         and(
           eq(userProfiles.isBanned, 0),
           ...(input.status && input.status.length > 0
-            ? [or(...input.status.map((status) => eq(listings.status, status)))!]
+            ? [
+                or(
+                  ...input.status.map((status) => eq(listings.status, status)),
+                )!,
+              ]
             : [eq(listings.status, LISTING_STATUS.ACTIVE)]),
           ...(input.category ? [eq(listings.category, input.category)] : []),
           ...(input.priceMin !== undefined
@@ -318,7 +323,8 @@ export class ListingService {
         const profile = profileResult[0] || null;
 
         // Use profile display name if available, otherwise use listing's display name
-        const effectiveDisplayName = profile?.displayName || listing.displayName;
+        const effectiveDisplayName =
+          profile?.displayName || listing.displayName;
 
         return {
           ...listing,

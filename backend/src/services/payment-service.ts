@@ -15,7 +15,7 @@ export interface CreatePaymentInput {
   userId: number;
   listingId: number;
   starAmount: number;
-  paymentType?: 'premium_listing' | 'bump';
+  paymentType?: "premium_listing" | "bump";
   // Legacy support
   postId?: number;
 }
@@ -53,7 +53,7 @@ export class PaymentService {
 
     // Support both legacy postId and new listingId
     const listingId = input.listingId || input.postId!;
-    const paymentType = input.paymentType || 'premium_listing';
+    const paymentType = input.paymentType || "premium_listing";
 
     // Create invoice payload with metadata
     const invoicePayload = JSON.stringify({
@@ -331,9 +331,7 @@ export class PaymentService {
         const errorMessage =
           error instanceof Error ? error.message : String(error);
         const errorCode =
-          typeof error === "object" &&
-          error !== null &&
-          "error_code" in error
+          typeof error === "object" && error !== null && "error_code" in error
             ? (error.error_code as number)
             : undefined;
 

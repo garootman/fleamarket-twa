@@ -1,26 +1,27 @@
 export const CATEGORIES = [
-  { id: 'electronics', name: 'Electronics', emoji: '📱' },
-  { id: 'clothing', name: 'Clothing', emoji: '👕' },
-  { id: 'furniture', name: 'Furniture', emoji: '🛋️' },
-  { id: 'books', name: 'Books', emoji: '📚' },
-  { id: 'toys', name: 'Toys', emoji: '🧸' },
-  { id: 'sports', name: 'Sports', emoji: '⚽' },
-  { id: 'tools', name: 'Tools', emoji: '🔧' },
-  { id: 'home', name: 'Home & Garden', emoji: '🏡' },
-  { id: 'automotive', name: 'Automotive', emoji: '🚗' },
-  { id: 'other', name: 'Other', emoji: '📦' },
+  { id: "electronics", name: "Electronics", emoji: "📱" },
+  { id: "clothing", name: "Clothing", emoji: "👕" },
+  { id: "furniture", name: "Furniture", emoji: "🛋️" },
+  { id: "books", name: "Books", emoji: "📚" },
+  { id: "toys", name: "Toys", emoji: "🧸" },
+  { id: "sports", name: "Sports", emoji: "⚽" },
+  { id: "tools", name: "Tools", emoji: "🔧" },
+  { id: "home", name: "Home & Garden", emoji: "🏡" },
+  { id: "automotive", name: "Automotive", emoji: "🚗" },
+  { id: "other", name: "Other", emoji: "📦" },
 ] as const;
 
-export type CategoryId = typeof CATEGORIES[number]['id'];
+export type CategoryId = (typeof CATEGORIES)[number]["id"];
 
 // Listing status enum
 export const LISTING_STATUS = {
-  ACTIVE: 'active',
-  EXPIRED: 'expired',
-  ARCHIVED: 'archived',
+  ACTIVE: "active",
+  EXPIRED: "expired",
+  ARCHIVED: "archived",
 } as const;
 
-export type ListingStatus = typeof LISTING_STATUS[keyof typeof LISTING_STATUS];
+export type ListingStatus =
+  (typeof LISTING_STATUS)[keyof typeof LISTING_STATUS];
 
 // Price constraints (in cents)
 export const PRICE_MIN = 0;

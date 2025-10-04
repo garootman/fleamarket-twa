@@ -1,6 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { listingsApi, type Listing, type ListingFilters } from "../services/listingsApi";
+import {
+  listingsApi,
+  type Listing,
+  type ListingFilters,
+} from "../services/listingsApi";
 import { ListingTimer } from "../components/ListingTimer";
 import { CATEGORIES, formatPrice, getCategoryById } from "../constants";
 import { config } from "../config";
@@ -13,53 +17,68 @@ export default function ListingsFeed() {
   const [page, setPage] = useState(0);
 
   // Filters
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [priceMin, setPriceMin] = useState('');
-  const [priceMax, setPriceMax] = useState('');
-  const [sortBy, setSortBy] = useState<'price' | 'date'>('date');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [priceMin, setPriceMin] = useState("");
+  const [priceMax, setPriceMax] = useState("");
+  const [sortBy, setSortBy] = useState<"price" | "date">("date");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [showFilters, setShowFilters] = useState(false);
 
   const limit = 20;
 
-  const loadListings = useCallback(async (reset = false) => {
-    try {
-      setLoading(true);
-      const offset = reset ? 0 : page * limit;
+  const loadListings = useCallback(
+    async (reset = false) => {
+      try {
+        setLoading(true);
+        const offset = reset ? 0 : page * limit;
 
-      const filters: ListingFilters = {
-        category: selectedCategory || undefined,
-        search: searchQuery || undefined,
-        priceMin: priceMin ? parseInt(priceMin) * 100 : undefined,
-        priceMax: priceMax ? parseInt(priceMax) * 100 : undefined,
-        sortBy,
-        sortOrder,
-      };
+        const filters: ListingFilters = {
+          category: selectedCategory || undefined,
+          search: searchQuery || undefined,
+          priceMin: priceMin ? parseInt(priceMin) * 100 : undefined,
+          priceMax: priceMax ? parseInt(priceMax) * 100 : undefined,
+          sortBy,
+          sortOrder,
+        };
 
-      const response = await listingsApi.getAllListings(filters, limit, offset);
+        const response = await listingsApi.getAllListings(
+          filters,
+          limit,
+          offset,
+        );
 
-      if (reset) {
-        setListings(response.listings);
-        setPage(0);
-      } else {
-        setListings(prev => [...prev, ...response.listings]);
+        if (reset) {
+          setListings(response.listings);
+          setPage(0);
+        } else {
+          setListings((prev) => [...prev, ...response.listings]);
+        }
+
+        setHasMore(response.pagination.hasMore);
+      } catch (err) {
+        console.error("Failed to load listings:", err);
+      } finally {
+        setLoading(false);
       }
-
-      setHasMore(response.pagination.hasMore);
-    } catch (err) {
-      console.error('Failed to load listings:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [page, selectedCategory, searchQuery, priceMin, priceMax, sortBy, sortOrder]);
+    },
+    [
+      page,
+      selectedCategory,
+      searchQuery,
+      priceMin,
+      priceMax,
+      sortBy,
+      sortOrder,
+    ],
+  );
 
   useEffect(() => {
     loadListings(true);
   }, [selectedCategory, searchQuery, priceMin, priceMax, sortBy, sortOrder]);
 
   const handleLoadMore = () => {
-    setPage(prev => prev + 1);
+    setPage((prev) => prev + 1);
   };
 
   useEffect(() => {
@@ -69,7 +88,7 @@ export default function ListingsFeed() {
   }, [page]);
 
   const handleCategorySelect = (categoryId: string) => {
-    setSelectedCategory(categoryId === selectedCategory ? '' : categoryId);
+    setSelectedCategory(categoryId === selectedCategory ? "" : categoryId);
   };
 
   const handleSearch = (e: React.FormEvent) => {
@@ -77,12 +96,12 @@ export default function ListingsFeed() {
   };
 
   const clearFilters = () => {
-    setSelectedCategory('');
-    setSearchQuery('');
-    setPriceMin('');
-    setPriceMax('');
-    setSortBy('date');
-    setSortOrder('desc');
+    setSelectedCategory("");
+    setSearchQuery("");
+    setPriceMin("");
+    setPriceMax("");
+    setSortBy("date");
+    setSortOrder("desc");
   };
 
   return (
@@ -93,7 +112,7 @@ export default function ListingsFeed() {
           <div className="flex items-center justify-between mb-3">
             <h1 className="text-xl font-bold text-gray-900">Marketplace</h1>
             <button
-              onClick={() => navigate('/create-listing')}
+              onClick={() => navigate("/create-listing")}
               className="bg-blue-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-600"
             >
               + New Listing
@@ -114,11 +133,11 @@ export default function ListingsFeed() {
           {/* Category Tabs */}
           <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
             <button
-              onClick={() => setSelectedCategory('')}
+              onClick={() => setSelectedCategory("")}
               className={`flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                selectedCategory === ''
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                selectedCategory === ""
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
               All
@@ -129,8 +148,8 @@ export default function ListingsFeed() {
                 onClick={() => handleCategorySelect(category.id)}
                 className={`flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
                   selectedCategory === category.id
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? "bg-blue-500 text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
                 {category.emoji} {category.name}
@@ -143,7 +162,7 @@ export default function ListingsFeed() {
             onClick={() => setShowFilters(!showFilters)}
             className="mt-2 text-sm text-blue-500 hover:text-blue-600 font-medium"
           >
-            {showFilters ? '▼' : '▶'} Filters & Sort
+            {showFilters ? "▼" : "▶"} Filters & Sort
           </button>
 
           {/* Filters Panel */}
@@ -181,7 +200,9 @@ export default function ListingsFeed() {
                 <div className="flex gap-2">
                   <select
                     value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value as 'price' | 'date')}
+                    onChange={(e) =>
+                      setSortBy(e.target.value as "price" | "date")
+                    }
                     className="flex-1 px-3 py-1.5 border border-gray-300 rounded text-sm"
                   >
                     <option value="date">Date</option>
@@ -189,11 +210,17 @@ export default function ListingsFeed() {
                   </select>
                   <select
                     value={sortOrder}
-                    onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
+                    onChange={(e) =>
+                      setSortOrder(e.target.value as "asc" | "desc")
+                    }
                     className="flex-1 px-3 py-1.5 border border-gray-300 rounded text-sm"
                   >
-                    <option value="desc">{sortBy === 'price' ? 'High to Low' : 'Newest'}</option>
-                    <option value="asc">{sortBy === 'price' ? 'Low to High' : 'Oldest'}</option>
+                    <option value="desc">
+                      {sortBy === "price" ? "High to Low" : "Newest"}
+                    </option>
+                    <option value="asc">
+                      {sortBy === "price" ? "Low to High" : "Oldest"}
+                    </option>
                   </select>
                 </div>
               </div>
@@ -219,7 +246,9 @@ export default function ListingsFeed() {
         ) : listings.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-gray-600 text-lg mb-2">No listings found</p>
-            <p className="text-gray-500 text-sm">Try adjusting your filters or create a new listing</p>
+            <p className="text-gray-500 text-sm">
+              Try adjusting your filters or create a new listing
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3">
@@ -242,7 +271,7 @@ export default function ListingsFeed() {
                     />
                   ) : (
                     <div className="w-full h-40 bg-gray-200 flex items-center justify-center text-4xl">
-                      {category?.emoji || '📦'}
+                      {category?.emoji || "📦"}
                     </div>
                   )}
 
@@ -253,7 +282,9 @@ export default function ListingsFeed() {
                         {listing.title}
                       </h3>
                       {category && (
-                        <span className="text-lg flex-shrink-0">{category.emoji}</span>
+                        <span className="text-lg flex-shrink-0">
+                          {category.emoji}
+                        </span>
                       )}
                     </div>
 

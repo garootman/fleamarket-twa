@@ -1,16 +1,21 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { listingsApi, type CreateListingData } from '../services/listingsApi';
-import { useAuth } from '../contexts/AuthContext';
-import { CATEGORIES, parsePriceInput, PRICE_MAX, type CategoryId } from '../constants';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { listingsApi, type CreateListingData } from "../services/listingsApi";
+import { useAuth } from "../contexts/AuthContext";
+import {
+  CATEGORIES,
+  parsePriceInput,
+  PRICE_MAX,
+  type CategoryId,
+} from "../constants";
 
 export default function CreateListing() {
   const navigate = useNavigate();
   const { sessionId } = useAuth();
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [price, setPrice] = useState('');
-  const [category, setCategory] = useState<CategoryId>('other');
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [price, setPrice] = useState("");
+  const [category, setCategory] = useState<CategoryId>("other");
   const [images, setImages] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -19,38 +24,38 @@ export default function CreateListing() {
     if (e.target.files) {
       const files = Array.from(e.target.files);
       if (images.length + files.length > 10) {
-        setError('Maximum 10 images allowed');
+        setError("Maximum 10 images allowed");
         return;
       }
-      setImages(prev => [...prev, ...files]);
+      setImages((prev) => [...prev, ...files]);
     }
   };
 
   const removeImage = (index: number) => {
-    setImages(prev => prev.filter((_, i) => i !== index));
+    setImages((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!sessionId) {
-      setError('Not authenticated');
+      setError("Not authenticated");
       return;
     }
 
     if (!title.trim()) {
-      setError('Title is required');
+      setError("Title is required");
       return;
     }
 
     if (!description.trim()) {
-      setError('Description is required');
+      setError("Description is required");
       return;
     }
 
     const priceInCents = parsePriceInput(price);
     if (priceInCents < 0 || priceInCents > PRICE_MAX) {
-      setError('Invalid price');
+      setError("Invalid price");
       return;
     }
 
@@ -80,8 +85,8 @@ export default function CreateListing() {
           formData.append(`image_${i}`, image);
           formData.append(`thumbnail_${i}`, image); // Same for now
           formData.append(`order_${i}`, i.toString());
-          formData.append(`width_${i}`, '800');
-          formData.append(`height_${i}`, '600');
+          formData.append(`width_${i}`, "800");
+          formData.append(`height_${i}`, "600");
         }
 
         await listingsApi.uploadImages(listing.id, formData, sessionId);
@@ -89,7 +94,7 @@ export default function CreateListing() {
 
       navigate(`/listings/${listing.id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create listing');
+      setError(err instanceof Error ? err.message : "Failed to create listing");
     } finally {
       setLoading(false);
     }
@@ -158,7 +163,9 @@ export default function CreateListing() {
               Price (USD) *
             </label>
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">
+                $
+              </span>
               <input
                 type="number"
                 value={price}
@@ -188,7 +195,9 @@ export default function CreateListing() {
               maxLength={2000}
               required
             />
-            <p className="text-xs text-gray-500 mt-1">{description.length}/2000</p>
+            <p className="text-xs text-gray-500 mt-1">
+              {description.length}/2000
+            </p>
           </div>
 
           {/* Images */}
@@ -250,7 +259,7 @@ export default function CreateListing() {
             disabled={loading || !title.trim() || !description.trim() || !price}
             className="w-full bg-blue-500 text-white py-4 rounded-lg font-medium hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Creating...' : 'Create Listing'}
+            {loading ? "Creating..." : "Create Listing"}
           </button>
         </form>
       </div>
