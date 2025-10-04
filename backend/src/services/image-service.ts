@@ -1,7 +1,7 @@
 import { eq, and } from "drizzle-orm";
 import type { Database } from "../db";
-import { postImages } from "../db/schema";
-import type { PostImage } from "../db/schema";
+import { listingImages } from "../db/schema";
+import type { ListingImage } from "../db/schema";
 import type { Env } from "../types/env";
 
 export interface ImageUploadData {
@@ -36,27 +36,27 @@ export class ImageService {
     this.r2 = r2;
   }
 
-  private generateImageKey(postId: number, filename: string): string {
+  private generateImageKey(listingId: number, filename: string): string {
     const timestamp = Date.now();
     const uuid = crypto.randomUUID();
     const ext = filename.split(".").pop()?.toLowerCase() || "jpg";
-    return `images/${postId}/full/${timestamp}_${uuid}.${ext}`;
+    return `images/${listingId}/full/${timestamp}_${uuid}.${ext}`;
   }
 
-  private generateThumbnailKey(postId: number, filename: string): string {
+  private generateThumbnailKey(listingId: number, filename: string): string {
     const timestamp = Date.now();
     const uuid = crypto.randomUUID();
     const ext = filename.split(".").pop()?.toLowerCase() || "jpg";
-    return `images/${postId}/thumbs/${timestamp}_${uuid}.${ext}`;
+    return `images/${listingId}/thumbs/${timestamp}_${uuid}.${ext}`;
   }
 
-  async uploadImage(
-    postId: number,
+  async uploadListingImage(
+    listingId: number,
     imageData: ImageUploadData,
-  ): Promise<PostImage> {
-    const imageKey = this.generateImageKey(postId, imageData.originalName);
+  ): Promise<ListingImage> {
+    const imageKey = this.generateImageKey(listingId, imageData.originalName);
     const thumbnailKey = this.generateThumbnailKey(
-      postId,
+      listingId,
       imageData.originalName,
     );
 
@@ -67,7 +67,7 @@ export class ImageService {
       },
       customMetadata: {
         originalName: imageData.originalName,
-        postId: postId.toString(),
+        listingId: listingId.toString(),
         width: imageData.width.toString(),
         height: imageData.height.toString(),
       },
@@ -80,7 +80,7 @@ export class ImageService {
       },
       customMetadata: {
         originalName: imageData.originalName,
-        postId: postId.toString(),
+        listingId: listingId.toString(),
         type: "thumbnail",
       },
     });
@@ -88,9 +88,9 @@ export class ImageService {
     // Save metadata to database
     const now = new Date().toISOString();
     const [newImage] = await this.db
-      .insert(postImages)
+      .insert(listingImages)
       .values({
-        postId,
+        listingId,
         originalName: imageData.originalName,
         imageKey,
         thumbnailKey,
@@ -106,19 +106,19 @@ export class ImageService {
     return newImage;
   }
 
-  async uploadImages(
-    postId: number,
+  async uploadListingImages(
+    listingId: number,
     imagesData: ImageUploadData[],
-  ): Promise<PostImage[]> {
-    const results: PostImage[] = [];
+  ): Promise<ListingImage[]> {
+    const results: ListingImage[] = [];
 
     for (const imageData of imagesData) {
       try {
-        const image = await this.uploadImage(postId, imageData);
+        const image = await this.uploadListingImage(listingId, imageData);
         results.push(image);
       } catch (error) {
         // If any upload fails, cleanup uploaded images and throw
-        await this.cleanupPostImages(postId);
+        await this.cleanupListingImages(listingId);
         throw error;
       }
     }
@@ -126,12 +126,12 @@ export class ImageService {
     return results;
   }
 
-  async getPostImages(postId: number): Promise<ImageUrlData[]> {
+  async getListingImages(listingId: number): Promise<ImageUrlData[]> {
     const images = await this.db
       .select()
-      .from(postImages)
-      .where(eq(postImages.postId, postId))
-      .orderBy(postImages.uploadOrder);
+      .from(listingImages)
+      .where(eq(listingImages.listingId, listingId))
+      .orderBy(listingImages.uploadOrder);
 
     return images.map((image) => ({
       id: image.id,
@@ -145,12 +145,12 @@ export class ImageService {
     }));
   }
 
-  async deleteImage(imageId: number, postId: number): Promise<boolean> {
+  async deleteListingImage(imageId: number, listingId: number): Promise<boolean> {
     // Get image metadata
     const [image] = await this.db
       .select()
-      .from(postImages)
-      .where(and(eq(postImages.id, imageId), eq(postImages.postId, postId)))
+      .from(listingImages)
+      .where(and(eq(listingImages.id, imageId), eq(listingImages.listingId, listingId)))
       .limit(1);
 
     if (!image) {
@@ -168,19 +168,19 @@ export class ImageService {
 
     // Delete from database
     const [deletedImage] = await this.db
-      .delete(postImages)
-      .where(and(eq(postImages.id, imageId), eq(postImages.postId, postId)))
+      .delete(listingImages)
+      .where(and(eq(listingImages.id, imageId), eq(listingImages.listingId, listingId)))
       .returning();
 
     return !!deletedImage;
   }
 
-  async cleanupPostImages(postId: number): Promise<void> {
-    // Get all images for the post
+  async cleanupListingImages(listingId: number): Promise<void> {
+    // Get all images for the listing
     const images = await this.db
       .select()
-      .from(postImages)
-      .where(eq(postImages.postId, postId));
+      .from(listingImages)
+      .where(eq(listingImages.listingId, listingId));
 
     // Delete from R2
     for (const image of images) {
@@ -193,7 +193,7 @@ export class ImageService {
     }
 
     // Delete from database
-    await this.db.delete(postImages).where(eq(postImages.postId, postId));
+    await this.db.delete(listingImages).where(eq(listingImages.listingId, listingId));
   }
 
   async validateImageFile(
@@ -223,13 +223,38 @@ export class ImageService {
     return buffer.byteLength <= 150 * 1024;
   }
 
-  async getImageCount(postId: number): Promise<number> {
+  async getListingImageCount(listingId: number): Promise<number> {
     const [result] = await this.db
-      .select({ count: postImages.id })
-      .from(postImages)
-      .where(eq(postImages.postId, postId));
+      .select({ count: listingImages.id })
+      .from(listingImages)
+      .where(eq(listingImages.listingId, listingId));
 
     return result?.count || 0;
+  }
+
+  // Legacy methods for backward compatibility (posts = listings)
+  async uploadImage(postId: number, imageData: ImageUploadData) {
+    return this.uploadListingImage(postId, imageData);
+  }
+
+  async uploadImages(postId: number, imagesData: ImageUploadData[]) {
+    return this.uploadListingImages(postId, imagesData);
+  }
+
+  async getPostImages(postId: number) {
+    return this.getListingImages(postId);
+  }
+
+  async deleteImage(imageId: number, postId: number) {
+    return this.deleteListingImage(imageId, postId);
+  }
+
+  async cleanupPostImages(postId: number) {
+    return this.cleanupListingImages(postId);
+  }
+
+  async getImageCount(postId: number) {
+    return this.getListingImageCount(postId);
   }
 
   async uploadProfileImage(file: File, profileImageKey: string): Promise<void> {

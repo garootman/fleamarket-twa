@@ -1,6 +1,9 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Layout from "./components/Layout";
 import Feed from "./pages/Feed";
+import ListingsFeed from "./pages/ListingsFeed";
+import ListingDetail from "./pages/ListingDetail";
+import CreateListing from "./pages/CreateListing";
 import UnifiedProfile from "./pages/UnifiedProfile";
 import EditProfile from "./pages/EditProfile";
 import Payments from "./pages/Payments";
@@ -12,7 +15,19 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
+        element: <ListingsFeed />,
+      },
+      {
+        path: "feed",
         element: <Feed />,
+      },
+      {
+        path: "listings/:id",
+        element: <ListingDetail />,
+      },
+      {
+        path: "create-listing",
+        element: <CreateListing />,
       },
       {
         path: "edit-profile",

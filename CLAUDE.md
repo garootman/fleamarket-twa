@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-A full-stack Telegram Web App template with bot integration, deployed on Cloudflare Workers (backend) and Pages (frontend). Uses React + TypeScript frontend with Hono backend, D1 SQLite database, KV sessions, and R2 image storage.
+A full-stack **marketplace** Telegram Web App with bot integration, deployed on Cloudflare Workers (backend) and Pages (frontend). Users can create listings with title, price, category, and images, browse/search/filter the marketplace, and contact sellers via Telegram. Features time-limited listings with bump system, admin moderation, and Telegram Stars payments for premium bumps.
+
+Uses React + TypeScript frontend with Hono backend, D1 SQLite database, KV sessions, and R2 image storage.
 
 ## Architecture
 
@@ -31,25 +33,49 @@ A full-stack Telegram Web App template with bot integration, deployed on Cloudfl
 4. Session stored in KV (SESSIONS binding), cookie returned
 5. Middleware (`telegram-auth.ts`, `admin-auth.ts`) validates subsequent requests
 
+**Marketplace Listings**:
+
+1. User creates listing with title, price, category, description, images
+2. Listing expires after 3 days (default) from creation/last bump
+3. On-demand expiry checking: `listingService.expireOldListings()` called in API endpoints
+4. Owner can bump listing once per 24 hours:
+   - Free bump: +3 days extension
+   - Paid bump (1 Telegram Star): +7 days extension, initiates Stars payment flow
+5. Browse/filter by category, price range, search query; sort by price/date
+6. Contact seller via Telegram deep link (`https://t.me/{username}`)
+7. Admin can archive listings with reason (sends Telegram notification to owner)
+
 **Telegram Webhook** (`src/webhook.ts`):
 
 - Bot commands: `/start`, `/repo`
-- Telegram Payments: `pre_checkout_query` → validates payment → `successful_payment` → updates DB atomically → notifications
-- Refunds: `refunded_payment` → reverts post premium status
+- Telegram Payments:
+  - `pre_checkout_query` → validates payment
+  - `successful_payment` → updates DB atomically (listing expiry extended or post premium status) → notifications
+  - `refunded_payment` → reverts changes
+- Payment types: `listing_bump` (paid bump), `post_premium` (legacy)
 
 **Database** (D1 SQLite):
 
-- `posts` - user posts with optional star payments
-- `payments` - Telegram Stars payment records
+- `listings` (aliased as `posts` for backward compatibility) - marketplace listings with title, price, category, status, expiry, bump tracking
+- `listingImages` (aliased as `postImages`) - image metadata (R2 keys for originals + thumbnails)
+- `payments` - Telegram Stars payment records with `listingId` and `paymentType`
 - `userProfiles` - user profiles with avatar & contact info
-- `postImages` - image metadata (R2 keys for originals + thumbnails)
+
+**Shared Constants** (`/shared/constants.ts`):
+
+- 10 predefined categories (electronics, fashion, home, vehicles, etc.) with emoji
+- Listing statuses: `active`, `expired`, `archived`
+- Price range: $0 to $1,000,000 (stored in cents: 0-100,000,000)
+- Expiry durations: 3d default, +3d free bump, +7d paid bump
+- Bump cooldown: 24 hours
 
 **Image Flow**:
 
-1. Frontend uploads to `/api/posts/:postId/images` or `/api/profile/me/avatar`
+1. Frontend uploads to `/api/listings/:listingId/images` or `/api/profile/me/avatar`
 2. Backend receives multipart form, uses `browser-image-compression` for thumbnails
 3. Stores in R2 bucket (IMAGES binding), saves keys to D1
 4. Local dev serves via `/r2/*` endpoint; production uses R2 public domain
+5. Max 10 images per listing
 
 ### Environment Strategy
 
@@ -127,16 +153,47 @@ See `.github/workflows/` for CI/CD pipeline:
 - Admin endpoints check `role === 'admin'` (set when `telegramId === TELEGRAM_ADMIN_ID`)
 - Dev bypass: Creates mock user when `DEV_AUTH_BYPASS_ENABLED=true`
 
+### Marketplace API Endpoints
+
+**Listings**:
+- `GET /api/listings` - Browse listings with filters (category, price range, search), sorting, pagination
+- `GET /api/listings/:listingId` - Get single listing with images and seller profile
+- `GET /api/listings/user/:userId` - Get user's listings
+- `POST /api/listings` - Create new listing (auth required)
+- `PUT /api/listings/:listingId` - Update listing (owner only)
+- `DELETE /api/listings/:listingId` - Delete listing (owner or admin)
+- `POST /api/listings/:listingId/bump` - Bump listing (free or paid, owner only)
+- `POST /api/listings/:listingId/images` - Upload images (owner only)
+
+**Admin**:
+- `POST /api/admin/listings/:listingId/archive` - Archive listing with reason (admin only, sends Telegram notification)
+
+**Services** (`backend/src/services/`):
+- `listing-service.ts` - CRUD, filters, search, sorting, expiry management
+- `bump-service.ts` - Bump validation (cooldown check), free/paid bump execution
+- `admin-service.ts` - Archive listings with Telegram notifications
+- `image-service.ts` - Upload/delete images for listings (backward compat for posts)
+- `payment-service.ts` - Handle Telegram Stars payments for bumps
+- `post-service.ts` - Legacy service, wraps listing-service for backward compat
+
 ### Payment Flow
 
 - Uses Telegram Stars API
-- Atomic updates via `db.batch()` to ensure post + payment consistency
+- Payment types: `listing_bump` (paid bump), `post_premium` (legacy)
+- Atomic updates via `db.batch()` to ensure listing/post + payment consistency
 - Idempotency via `telegram_payment_charge_id`
 - Webhook handlers MUST be registered before generic message handler in `webhook.ts`
+- Paid bump flow:
+  1. User clicks "Paid Bump" button in ListingDetail page
+  2. Frontend calls `POST /api/listings/:listingId/bump` with `isPaid: true`
+  3. Backend creates payment invoice via Telegram Bot API
+  4. User completes payment in Telegram
+  5. Telegram webhook receives `successful_payment` event
+  6. Backend extends listing expiry by 7 days, marks as active
 
 ### Image Handling
 
-- Max 10 images per post
+- Max 10 images per listing (or post)
 - Frontend crops images before upload (`react-easy-crop`)
 - Backend generates thumbnails (max 800x800)
 - R2 keys: `{userId}/{uuid}.{ext}` and `{userId}/thumb_{uuid}.{ext}`
@@ -144,9 +201,35 @@ See `.github/workflows/` for CI/CD pipeline:
 ### Frontend Routing
 
 - React Router v6 with client-side routing
-- Main routes: `/` (Feed), `/profile` (UnifiedProfile), `/edit-profile`, `/payments`
+- Main routes:
+  - `/` - Marketplace feed (ListingsFeed) with category tabs, search, filters
+  - `/listings/:id` - Listing detail page with image carousel, bump buttons, seller contact
+  - `/create-listing` - Create new listing form
+  - `/profile/:telegramId` - User profile (UnifiedProfile)
+  - `/edit-profile` - Edit user profile
+  - `/payments` - Payment history
+  - `/feed` - Legacy feed view (kept for backward compat)
 - AuthRequired wrapper protects routes
 - Bottom navigation for mobile UX
+
+### Frontend Components
+
+**Marketplace-Specific**:
+- `ListingTimer.tsx` - Real-time countdown timer with color coding (green >24h, yellow >1h, red <1h)
+- `ListingDetail.tsx` - Full listing page with:
+  - Image carousel with prev/next navigation
+  - Price, category, description display
+  - Seller info with profile image and Telegram contact button
+  - Bump buttons (free/paid) with 24h cooldown display
+  - Edit/Delete for owners
+  - Archive modal for admins
+- `ListingsFeed.tsx` - Marketplace feed with:
+  - Horizontal scrolling category tabs
+  - Search bar
+  - Collapsible filters panel (price range, sort options)
+  - Grid layout (2 columns) with listing cards
+  - Infinite scroll pagination
+- `CreateListing.tsx` - Form with title, category, price, description, image upload (max 10)
 
 ### Environment Variables
 

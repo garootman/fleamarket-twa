@@ -237,8 +237,8 @@ export async function handleWebhook(c: Context) {
         })
         .where(eq(payments.id, payment.id));
 
-      // Revert post if it exists
-      if (payment.postId !== null) {
+      // Revert listing if it exists
+      if (payment.listingId !== null) {
         await db
           .update(posts)
           .set({
@@ -246,25 +246,25 @@ export async function handleWebhook(c: Context) {
             paymentId: null,
             updatedAt: now,
           })
-          .where(eq(posts.id, payment.postId));
+          .where(eq(posts.id, payment.listingId));
       }
 
       // Send notifications
       await sendPaymentRefundNotification(
         c.env,
         payment.userId,
-        payment.postId ?? 0,
+        payment.listingId ?? 0,
         payment.starAmount,
       );
       await sendAdminRefundAlert(c.env, {
         userId: payment.userId,
-        postId: payment.postId ?? 0,
+        postId: payment.listingId ?? 0,
         starAmount: payment.starAmount,
         chargeId: telegram_payment_charge_id,
       });
 
       console.log(
-        `✅ Refund processed: user=${payment.userId}, post=${payment.postId ?? "N/A"}, stars=${payment.starAmount}`,
+        `✅ Refund processed: user=${payment.userId}, listing=${payment.listingId ?? "N/A"}, stars=${payment.starAmount}`,
       );
     } catch (error) {
       console.error("❌ Error in refunded_payment handler:", error);

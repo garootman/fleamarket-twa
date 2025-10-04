@@ -13,8 +13,11 @@ export type PaymentStatus =
 
 export interface CreatePaymentInput {
   userId: number;
-  postId: number;
+  listingId: number;
   starAmount: number;
+  paymentType?: 'premium_listing' | 'bump';
+  // Legacy support
+  postId?: number;
 }
 
 export interface UpdatePaymentStatusInput {
@@ -48,11 +51,16 @@ export class PaymentService {
     const now = new Date().toISOString();
     const paymentId = crypto.randomUUID();
 
+    // Support both legacy postId and new listingId
+    const listingId = input.listingId || input.postId!;
+    const paymentType = input.paymentType || 'premium_listing';
+
     // Create invoice payload with metadata
     const invoicePayload = JSON.stringify({
-      postId: input.postId,
+      listingId,
       userId: input.userId,
       paymentId,
+      paymentType,
       timestamp: now,
     });
 
@@ -63,7 +71,8 @@ export class PaymentService {
         id: paymentId,
         invoicePayload,
         userId: input.userId,
-        postId: input.postId,
+        listingId,
+        paymentType,
         starAmount: input.starAmount,
         status: "created",
         createdAt: now,
@@ -89,7 +98,7 @@ export class PaymentService {
         isPaymentPending: 1,
         updatedAt: now,
       })
-      .where(eq(posts.id, input.postId));
+      .where(eq(posts.id, listingId));
 
     return {
       payment: newPayment,
@@ -322,7 +331,9 @@ export class PaymentService {
         const errorMessage =
           error instanceof Error ? error.message : String(error);
         const errorCode =
-          typeof error === "object" && error !== null && "error_code" in error
+          typeof error === "object" &&
+          error !== null &&
+          "error_code" in error
             ? (error.error_code as number)
             : undefined;
 
@@ -512,8 +523,8 @@ export class PaymentService {
               newStatus: expectedStatus,
             });
 
-            // If refunded, also update the post
-            if (expectedStatus === "refunded" && payment.postId) {
+            // If refunded, also update the listing
+            if (expectedStatus === "refunded" && payment.listingId) {
               const now = new Date().toISOString();
               await this.db
                 .update(posts)
@@ -522,7 +533,7 @@ export class PaymentService {
                   paymentId: null,
                   updatedAt: now,
                 })
-                .where(eq(posts.id, payment.postId));
+                .where(eq(posts.id, payment.listingId));
             }
           } else {
             result.unchanged++;

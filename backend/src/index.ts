@@ -14,6 +14,18 @@ import {
   deletePostImage,
 } from "./api/posts";
 import {
+  getAllListings,
+  getUserListings,
+  getListingById,
+  createListing,
+  updateListing,
+  deleteListing,
+  bumpListing,
+  archiveListing,
+  uploadListingImages,
+  deleteListingImage,
+} from "./api/listings";
+import {
   getProfile,
   getMyProfile,
   updateMyProfile,
@@ -74,16 +86,26 @@ app.post("/webhook", handleWebhook);
 app.get("/api/auth", authHandler);
 app.post("/api/auth", authHandler);
 
-// Post endpoints
+// Post endpoints (legacy - to be removed)
 app.get("/api/posts", getAllPosts);
 app.get("/api/posts/user/:userId", getUserPosts);
 app.post("/api/posts", createPost);
 app.put("/api/posts/:postId", updatePost);
 app.delete("/api/posts/:postId", deletePost);
-
-// Image endpoints
 app.post("/api/posts/:postId/images", uploadPostImages);
 app.delete("/api/posts/:postId/images/:imageId", deletePostImage);
+
+// Listing endpoints (marketplace)
+app.get("/api/listings", getAllListings);
+app.get("/api/listings/:listingId", getListingById);
+app.get("/api/listings/user/:userId", getUserListings);
+app.post("/api/listings", createListing);
+app.put("/api/listings/:listingId", updateListing);
+app.delete("/api/listings/:listingId", deleteListing);
+app.post("/api/listings/:listingId/bump", bumpListing);
+app.post("/api/admin/listings/:listingId/archive", archiveListing);
+app.post("/api/listings/:listingId/images", uploadListingImages);
+app.delete("/api/listings/:listingId/images/:imageId", deleteListingImage);
 
 // Profile endpoints
 app.get("/api/profile/me", getMyProfile);

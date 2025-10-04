@@ -113,8 +113,9 @@ export const makePremium = async (c: Context<{ Bindings: Env }>) => {
     // Create payment and get invoice URL
     const result = await paymentService.createPayment({
       userId: session.telegramId,
-      postId,
+      listingId: postId,
       starAmount: starCount,
+      paymentType: 'premium_listing',
     });
 
     return c.json({
