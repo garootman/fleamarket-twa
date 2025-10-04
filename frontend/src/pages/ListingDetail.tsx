@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { listingsApi, type Listing } from "../services/listingsApi";
 import { useAuth } from "../contexts/AuthContext";
 import { ListingTimer } from "../components/ListingTimer";
+import { ShareButton } from "../components/ShareButton";
 import {
   formatPrice,
   getCategoryById,
@@ -249,16 +250,26 @@ export default function ListingDetail() {
 
         {/* Actions */}
         <div className="space-y-2">
-          {/* Contact Button */}
-          {listing.profile?.username && !isOwner && (
-            <a
-              href={`https://t.me/${listing.profile.username}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block w-full bg-blue-500 text-white text-center py-3 rounded-lg font-medium hover:bg-blue-600"
-            >
-              💬 Contact Seller
-            </a>
+          {/* Contact & Share Buttons for non-owners */}
+          {!isOwner && (
+            <div className="grid grid-cols-2 gap-2">
+              {listing.profile?.username && (
+                <a
+                  href={`https://t.me/${listing.profile.username}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-blue-500 text-white text-center py-3 rounded-lg font-medium hover:bg-blue-600"
+                >
+                  💬 Contact
+                </a>
+              )}
+              <ShareButton listingId={listing.id} title={listing.title} />
+            </div>
+          )}
+
+          {/* Share Button for owners */}
+          {isOwner && (
+            <ShareButton listingId={listing.id} title={listing.title} />
           )}
 
           {/* Owner Actions */}

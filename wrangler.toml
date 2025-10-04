@@ -33,6 +33,7 @@ bucket_name = "fleamarket-r2"
 [vars]
 ENVIRONMENT = "production"
 PAGES_URL = "https://fleamarket-twa.pages.dev"
+BOT_USERNAME = "fleamarketx_bot"
 
 # Pages configuration
 pages_build_output_dir = "frontend/dist"
