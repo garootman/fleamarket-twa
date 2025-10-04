@@ -138,7 +138,7 @@ wrangler d1 create <your-database-name>
 - Copy `database_name` and `database_id` to `wrangler.toml`
 - Update `package.json` line 28:
   ```json
-  "db:migrate:local": "npx wrangler d1 migrations apply <your-database-name> --local"
+  "db:migrate:local": "npx wrangler d1 migrations apply fleamarket-db --local"
   ```
 
 **KV Namespace:**
