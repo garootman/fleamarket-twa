@@ -21,7 +21,28 @@ export async function handleWebhook(c: Context) {
 
   bot.command("start", async (ctx: GrammyContext) => {
     const firstName = ctx.from?.first_name || "User";
+    const startParam = ctx.match; // Gets the parameter after /start
 
+    // If start parameter is provided (e.g., /start listing_123)
+    if (startParam && startParam.toString().startsWith("listing_")) {
+      const listingId = startParam.toString().replace("listing_", "");
+      const webappUrl = c.env.WEBAPP_URL || c.env.PAGES_URL || "https://fleamarket-twa.pages.dev";
+
+      await ctx.reply(
+        `🛍️ Check out this listing!`,
+        {
+          reply_markup: {
+            inline_keyboard: [[{
+              text: "View Listing",
+              web_app: { url: `${webappUrl}?startParam=listing_${listingId}` }
+            }]]
+          }
+        }
+      );
+      return;
+    }
+
+    // Default welcome message
     await ctx.reply(
       `👋 Hello ${firstName}!\n\nWelcome to the Telegram Web App Template!\n\nhttps://github.com/thesameorg/telegram-webapp-cloudflare-template/`,
     );

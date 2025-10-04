@@ -18,6 +18,14 @@ function App() {
       } else {
         document.documentElement.classList.remove("dark");
       }
+
+      // Handle deep link via start_param
+      const startParam = webApp.initDataUnsafe?.start_param;
+      if (startParam && startParam.startsWith("listing_")) {
+        const listingId = startParam.replace("listing_", "");
+        // Store the redirect path in sessionStorage for the router to pick up
+        sessionStorage.setItem("deepLinkRedirect", `/listings/${listingId}`);
+      }
     }
   }, [webApp, isWebAppReady]);
 
